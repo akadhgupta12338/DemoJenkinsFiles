@@ -1,0 +1,28 @@
+pipeline {
+    agent any
+
+    stages {
+       stage('checkout') {
+				steps {  
+                git branch: 'master', url: 'https://github.com/akadhgupta12338/springboot-app.git'
+          }
+        }
+        stage('Execute Maven') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }  
+    // Building Docker images
+    stage('Building image and push image') {
+      steps{
+        script {
+           
+            sh "docker build -t my-docker-repo ."
+            sh "docker tag my-docker-repo:latest 737376305814.dkr.ecr.ap-south-1.amazonaws.com/my-docker-repo:latest"
+            sh 'aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 737376305814.dkr.ecr.ap-south-1.amazonaws.com'
+            sh "docker push 737376305814.dkr.ecr.ap-south-1.amazonaws.com/my-docker-repo:latest"
+         }
+        }
+      }
+    }
+}

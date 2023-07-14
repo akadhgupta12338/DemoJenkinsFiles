@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+	tools {
+	    maven "Maven"
+		}
+	    stages {
+			stage('checkout') {
+				steps {  
+                git branch: 'master', url: 'https://github.com/akadhgupta12338/jenkins-git-integration.git'
+          }
+        }
+        stage('readpom') {
+            steps{
+            script{
+             def readpom;
+             readpom = readMavenPom file: '';
+             def artifactversion = readpom.version;
+             echo "${artifactversion}"
+        }
+        }
+        }
+        
+    }
+}

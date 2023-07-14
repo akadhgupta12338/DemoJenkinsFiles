@@ -1,0 +1,43 @@
+//add string parameter in pipeline job with name=ART_VERSION, default value = 1.0.1 and description =Enter Version of Artifact which you want to deploy
+
+pipeline {
+    agent any
+    parameters {
+        string defaultValue: '1.0.1', description: 'Enter Version of Artifact which you want to deploy', name: 'ART_VERSION'
+}
+
+	    stages {
+	        
+              stage('checkout') {
+                    steps {
+                     git branch: 'master', url: 'https://github.com/akadhgupta12338/jenkins-git-integration.git'
+                        }
+                }
+        
+            stage('download'){
+                steps{
+                    script{
+                        rtDownload (
+                        serverId: 'artifactory',
+                        spec: """{
+                        "files": [
+                            {
+                                "pattern": "test-libs-snapshot-local/${ART_VERSION}/jenkins-git-integration.war",
+                                "target": "./target/"
+                        }
+                      ]
+                 }""",
+                )
+            }
+        }
+    }
+    
+            stage('Ansible Deploy') {
+            steps {
+               ansiblePlaybook credentialsId: 'tomcat',extras: "-e version=${ART_VERSION}", disableHostKeyChecking: true, installation: 'ansible', inventory: 'host.inv', playbook: 'copy-artifact.yml'
+                
+            }
+        }      
+}
+    
+}
